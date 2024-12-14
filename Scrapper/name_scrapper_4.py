@@ -11,10 +11,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Base URL of the page containing the alphabet links
 base_url = 'https://hamariweb.com/names/muslim/'
 
-# Send a request to the base URL to get the alphabet links
-response = requests.get(base_url)
-soup = BeautifulSoup(response.text, 'html.parser')
-
 # Define the output directory
 output_dir = r'C:\Users\asmir\Desktop\English-Name-to-Urdu-Kuch\Output'
 os.makedirs(output_dir, exist_ok=True)  # Create the directory if it doesn't exist
@@ -22,6 +18,16 @@ os.makedirs(output_dir, exist_ok=True)  # Create the directory if it doesn't exi
 # Function to scrape names for a given category (boys or girls)
 def scrape_names(category, link_selector, file_prefix):
     logging.info(f'Starting to scrape {category} names...')
+    
+    # Send a request to the base URL to get the alphabet links for the given category
+    try:
+        response = requests.get(base_url)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching base URL: {e}")
+        return
+    
+    soup = BeautifulSoup(response.text, 'html.parser')
     
     # Find the section containing the alphabet links for the given category
     alphabet_links = soup.select(link_selector)
@@ -45,8 +51,14 @@ def scrape_names(category, link_selector, file_prefix):
             
             logging.debug(f'Requesting URL: {page_url}')
             
-            # Send a request to the website
-            response = requests.get(page_url)
+            try:
+                # Send a request to the website
+                response = requests.get(page_url)
+                response.raise_for_status()
+            except requests.exceptions.RequestException as e:
+                logging.error(f"Error fetching page URL: {e}")
+                break
+            
             soup = BeautifulSoup(response.text, 'html.parser')
             
             # Find all table rows
@@ -70,7 +82,7 @@ def scrape_names(category, link_selector, file_prefix):
                 english_and_urdu_names.append((name_in_english, name_in_urdu))
             
             # Check if there is a "Next" page link
-            next_page = soup.find('a', text='Next')
+            next_page = soup.find('a', string='Next')
             if not next_page:
                 logging.info(f'No next page found for {alphabet} on page {page_number}.')
                 break
