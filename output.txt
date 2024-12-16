@@ -1,2 +1,2 @@
-Nasim: ناصم
-Gender: both genders
+Mr. Muhammad: محمد صاحب
+Gender: male
